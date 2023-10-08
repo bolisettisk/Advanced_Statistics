@@ -1,0 +1,1638 @@
+---
+title: "Classification Tools for Chemical Analysis Data"
+author: "Siva Karteek Bolisetti - siva2.bolisetti@live.uwe.ac.uk"
+RVersion: 4.2.2
+RStudio Version: 2023.03.0+386
+lang: en-GB
+Operating System: Windows
+date: "2023-05-09"
+format:
+  html:
+    toc: true 
+    toc-depth: 5
+    number-sections: true
+  docx:
+    toc: true
+    toc-depth: 5
+    number-sections: true
+    
+editor: visual
+execute: 
+  echo: false
+  output: false
+  error: true
+  warning: false
+knitr: 
+  opts_chunk: 
+    comment: "#>"
+fig-align: center
+fig-cap-location: bottom
+bibliography: "assignment.yaml"
+csl: "harvard-university-of-the-west-of-england.csl"
+---
+
+```{r}
+# Loading required libraries. This block checks if the required libraries are available and installs them if they are not available and then loads them.
+#| label: load_libraries
+
+if(!require(knitr)){
+    install.packages("knitr", repos = "https://www.stats.bris.ac.uk/R/")
+    library(knitr)
+}
+
+if(!require(dplyr)){
+    install.packages("dplyr", repos = "https://www.stats.bris.ac.uk/R/")
+    library(dplyr)
+}
+
+if(!require(mclust)){
+    install.packages("mclust", repos = "https://www.stats.bris.ac.uk/R/")
+    library(mclust)
+}
+
+if(!require(corrplot)){
+    install.packages("corrplot", repos = "https://www.stats.bris.ac.uk/R/")
+    library(corrplot)
+}
+
+if(!require(magrittr)){
+    install.packages("knitr", repos = "https://www.stats.bris.ac.uk/R/")
+    library(magrittr)
+}
+
+if(!require(flextable)){
+    install.packages("flextable", repos = "https://www.stats.bris.ac.uk/R/")
+    library(flextable)
+}
+
+if(!require(caret)){
+    install.packages("caret", repos = "https://www.stats.bris.ac.uk/R/")
+    library(caret)
+}
+
+if(!require(tidyr)){
+    install.packages("tidyr", repos = "https://www.stats.bris.ac.uk/R/")
+    library(tidyr)
+}
+
+if(!require(tibble)){
+    install.packages("tibble", repos = "https://www.stats.bris.ac.uk/R/")
+    library(tibble)
+}
+
+if(!require(naniar)){
+    install.packages("naniar", repos = "https://www.stats.bris.ac.uk/R/")
+    library(naniar)
+}
+
+if(!require(ggplot2)){
+    install.packages("ggplot2", repos = "https://www.stats.bris.ac.uk/R/")
+    library(ggplot2)
+}
+
+if(!require(psych)){
+    install.packages("psych", repos = "https://www.stats.bris.ac.uk/R/")
+    library(psych)
+}
+
+if(!require(gridExtra)){
+    install.packages("gridExtra", repos = "https://www.stats.bris.ac.uk/R/")
+    library(gridExtra)
+}
+
+if(!require(stats)){
+    install.packages("stats", repos = "https://www.stats.bris.ac.uk/R/")
+    library(stats)
+}
+
+if(!require(factoextra)){
+    install.packages("factoextra", repos = "https://www.stats.bris.ac.uk/R/")
+    library(factoextra)
+}
+
+if(!require(ggpubr)){
+    install.packages("ggpubr", repos = "https://www.stats.bris.ac.uk/R/")
+    library(ggpubr)
+}
+
+# if(!require(tidyverse)){
+#     install.packages("tidyverse", repos = "https://www.stats.bris.ac.uk/R/")
+#     library(tidyverse)
+# }
+
+if(!require(e1071)){
+    install.packages("e1071", repos = "https://www.stats.bris.ac.uk/R/")
+    library(e1071)
+}
+
+if(!require(assertr)){
+    install.packages("assertr", repos = "https://www.stats.bris.ac.uk/R/")
+    library(assertr)
+}
+
+if(!require(paran)){
+    install.packages("paran", repos = "https://www.stats.bris.ac.uk/R/")
+    library(paran)
+}
+
+if(!require(ade4)){
+    install.packages("ade4", repos = "https://www.stats.bris.ac.uk/R/")
+    library(ade4)
+}
+
+if(!require(ggpubr)){
+    install.packages("ggpubr", repos = "https://www.stats.bris.ac.uk/R/")
+    library(ggpubr)
+}
+
+if(!require(rpart)){
+    install.packages("rpart", repos = "https://www.stats.bris.ac.uk/R/")
+    library(rpart)
+}
+
+if(!require(rpart.plot)){
+    install.packages("rpart.plot", repos = "https://www.stats.bris.ac.uk/R/")
+    library(rpart.plot)
+}
+
+if(!require(randomForest)){
+    install.packages("randomForest", repos = "https://www.stats.bris.ac.uk/R/")
+    library(randomForest)
+}
+
+if(!require(class)){
+    install.packages("class", repos = "https://www.stats.bris.ac.uk/R/")
+    library(class)
+}
+
+if(!require(MLmetrics)){
+    install.packages("MLmetrics", repos = "https://www.stats.bris.ac.uk/R/")
+    library(MLmetrics)
+}
+```
+
+## Introduction {#sec-introduction}
+
+```{r}
+#| label: loadingdata
+
+# Loads the Chemical Analysis Dataset 
+Chemical_Analysis_Data <- read.csv("../data/22063453.csv") # Chemical Analysis Dataset
+
+# Chemical_Analysis_Data <- read.csv("../data/externalvalidation.csv") # Out of sample validation data
+```
+
+In this report, R programming language is used to explore the chemical analysis dataset and recommend suitable classification tools. Exploratory Data Analysis (EDA) is performed to understand the underlying statistical distributions of the data. Various dimensionality reduction techniques and classification tools are investigated. Finally, classification performances and recommendations are discussed.
+
+## Exploratory Data Analysis {#sec-data-analysis}
+
+In this section, EDA is performed on the chemical analysis dataset. Some of the objectives of EDA include:
+
+-   Understand the structure of the data.
+-   Analyse various summary statistics for the data.
+-   Identify missing entries and other anomalies such as outliers.
+-   Perform data visualisation to visually explore the data.
+-   Data normalisation to adjust scales.
+
+### Data Summary {#sec-data-summary}
+
+```{r}
+#| label: column names
+#| echo: false
+
+# Generating a sentence with chemical analysis dataset column names to include in the report. It only includes the number of names defined in sentence_length.
+column_names <- colnames(Chemical_Analysis_Data)
+
+NamesToSentence <- function(column_names, sentence_length){
+  sentence = ""
+  if (sentence_length > length(column_names)){
+    for (i in 1:length(column_names)){
+      if (i < length(column_names)-1){
+        sentence <- paste0(sentence, column_names[i], ", ")
+      } else if (i == length(column_names)-1){
+        sentence <- paste0(sentence, column_names[i], " and ")
+      } else {
+        sentence <- paste0(sentence, column_names[i])
+      }
+    }
+  } else if (sentence_length == length(column_names)) {
+    for (i in 1:length(column_names)){
+      if (i < length(column_names)-1){
+        sentence <- paste0(sentence, column_names[i], ", ")
+      } else if (i == length(column_names)-1){
+        sentence <- paste0(sentence, column_names[i], " and ")
+      } else {
+        sentence <- paste0(sentence, column_names[i])
+      }
+    }
+  } else {
+    sl = sentence_length+1
+    for (i in 1:sl){
+      if (i < sl){
+        sentence <- paste0(sentence, column_names[i], ", ")
+      }
+      if (i == sl) {
+        sentence <- paste0(sentence, "etc.")
+        break
+      }
+    }
+  }
+  return (sentence)
+}
+```
+
+The features in the dataset include `r NamesToSentence(column_names,4)` Features and corresponding data types are summarised in @tbl-data-structure.
+
+```{r}
+#| label: tbl-data-structure
+#| output: true
+#| tbl-cap: Chemical Analysis Data Structure
+#| tbl-cap-location: bottom
+
+
+# Generating summary statistics with feature names, data type and missing values as column names
+data_structure <- data.frame(Feature_Names = names(Chemical_Analysis_Data),
+           Data_Type = sapply(Chemical_Analysis_Data, typeof),
+           Missing_Values = colSums(is.na(Chemical_Analysis_Data))/nrow(Chemical_Analysis_Data)*100,
+           row.names = NULL) 
+
+# Flextable library is used to convert the dataframe to a table and formatting is applied for the report
+flextable::flextable(data_structure) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_header_labels(Feature_Names = "Variable", Data_Type = "Data Type", Missing_Values = "Missing Values (%)") |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::hline() %>% flextable::color(~ Missing_Values > 0, color = "#FF0000", ~ Missing_Values) |> flextable::bold(j = 1) %>% flextable::color(~ Missing_Values == 0, color = "#009F00", ~ Missing_Values) # Formatting the flextable
+```
+
+```{r}
+#| label: row-col-count
+
+# Stores the row count and column count to respective variables. 
+
+data_rows <- nrow(Chemical_Analysis_Data)
+data_cols <- ncol(Chemical_Analysis_Data)
+
+# Generates a sentence with unique label names to add to the report.
+unique_labels <- unique(Chemical_Analysis_Data$label)
+sentence = ""
+for (i in 1:length(unique_labels)){
+  if (i < length(unique_labels)-1){
+    sentence <- paste0(sentence, unique_labels[i], ", ")
+  } else if (i < length(unique_labels)){
+    sentence <- paste0(sentence, unique_labels[i], " and ")
+  } else {
+    sentence <- paste0(sentence, unique_labels[i])
+  }}
+```
+
+The dataset consists of `r data_cols` features and `r data_rows` samples. The unique categorical values in the `label` feature and their distribution are summarised in @tbl-label-distribution.
+
+```{r}
+#| label: tbl-label-distribution
+#| output: true
+#| tbl-cap: Distribution of Labels
+#| tbl-cap-location: bottom
+
+# Generates a table with label distributions.
+
+# Generating a dataframe which consists of label distributions in training, test and validation sets 
+label_distribution <- as.data.frame(summary(as.factor(Chemical_Analysis_Data$label))) %>% tibble::rownames_to_column() %>% tidyr::pivot_wider(names_from = rowname, values_from = `summary(as.factor(Chemical_Analysis_Data$label))`)
+
+# Generating a fletable and formatting it to add to the report
+flextable::flextable(label_distribution) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::border_outer() |> flextable::border_inner() |> flextable::bold(j=c(1:length(unique_labels)))
+```
+
+### Missing Data {#sec-missing-data}
+
+Presence of missing data may interfere with statistical analysis procedures which usually require complete cases. The missing data can either be systematic or completely random. If it is systematic or \"not random\", the data needs to be evaluated to identify the reasons.
+
+The dataset consists of `r ifelse(anyNA(Chemical_Analysis_Data), sum(is.na(Chemical_Analysis_Data)), "no")` missing values and `r length(which(!complete.cases(Chemical_Analysis_Data)))` incomplete entries. Ten features with most number of missing values are plotted in [@fig-missing-values-0; @tierney2023].
+
+```{r}
+#| label: fig-missing-values-0
+#| output: ture
+#| fig-height: 5
+#| fig-cap: Missing Value Contributions by Features (Top 10)
+#| fig-cap-location: bottom
+
+# Uses naniar library to plot distribution of missing values.
+
+# naniar::vis_miss(Chemical_Analysis_Data)
+naniar::gg_miss_upset(Chemical_Analysis_Data, nsets = 10)
+```
+
+The number of missing values by label is summarised in @tbl-missing-values-by-label.
+
+```{r}
+#| label: tbl-missing-values-by-label
+#| output: ture
+#| tbl-cap: Distribution of Missing Values by Labels
+#| tbl-cap-location: bottom
+
+# Missing values are grouped by label and corresponding missing value counts are stored in a data frame.
+# Pivot_wider() function is used to convert the dataframe from vertical long format to horizontal wide format. 
+# Wide data frame is converted to a table output using flextable and table formatting is applied.
+
+Missing_Value_Groups <- Chemical_Analysis_Data %>% group_by(label) %>% summarise(sum(is.na(Chemical_Analysis_Data)))
+names(Missing_Value_Groups)[2] <- "Missing Values"
+Missing_Value_Groups <- Missing_Value_Groups %>% tidyr::pivot_wider(names_from = label, values_from = `Missing Values`)
+
+flextable::flextable(Missing_Value_Groups) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::border_outer() |> flextable::border_inner() |> flextable::bold(j=c(1:length(Missing_Value_Groups)))
+
+```
+
+@tbl-data-structure suggests that the proportion of missing values by features is relatively low. Missing value proportions by feature and label are plotted in @fig-missing-values-1.
+
+```{r}
+#| label: fig-missing-values-1
+#| output: ture
+#| fig-height: 4
+#| fig-cap: Missing Values in each Feature by label
+#| fig-cap-location: bottom
+
+# Plotting missing values by labels and features
+
+Chemical_Analysis_Data %>% naniar::gg_miss_fct(fct = label)
+```
+
+Based on the limited available information and available evidence, it is assumed that the data is missing completely at random. Low number of missing entries and relatively similar distributions of missing values across labels suggest no risk of inducing bias in the data due to removal of the missing entries.
+
+```{r}
+#| label: remove-NaNs
+
+# using complete.cases function to remove rows with missing values.
+# rownames() <-  NULL is used to reset the row index to a continuous ordered sequence again.
+
+CAD_clean_na <- Chemical_Analysis_Data[complete.cases(Chemical_Analysis_Data),]
+rownames(CAD_clean_na) <- NULL
+```
+
+### Outliers {#sec-outlier-data}
+
+Outliers are the data points that deviate significantly from the group mean values. Data points which deviate significantly from their group means can be observed in @fig-outliers-0.
+
+```{r}
+#| label: fig-outliers-0
+#| output: ture
+#| fig-height: 4
+#| fig-cap: Outliers by Features
+#| fig-cap-location: bottom
+
+# Generates a box plot to visualise outliers.
+
+CAD_clean_na %>%  tidyr::pivot_longer(!label, names_to = "Features", values_to = "Values") %>% ggplot2::ggplot(ggplot2::aes(x = Features, y = Values)) + ggplot2::geom_boxplot(fill = "#119900", outlier.colour = "#970000")
+```
+
+In the absence of further information, the data points which deviate from the group `median` by more than 3 median absolute deviations are referred to as outliers.
+
+```{r}
+#| label: tbl-data-z-score
+#| output: ture
+#| tbl-cap: Distribution of Outliers by Features
+#| tbl-cap-location: bottom
+
+
+# Z-score computes the number of standard deviations by which a data point deviates from the group mean value. Data points which deviate by more than 3 standard deviations from the group mean are usually classified as outliers. However, the presence of extreme outliers which could affect the mean values. Therefore, a modified z-score is used which uses median instead of mean.
+
+# Function that calculates modified z-score using median (stats::median) and median absolute deviation (stats::mad)
+mod_z_score_abs <- function(x){
+  med_x <- stats::median(x)
+  mad_x <- stats::mad(x)
+  abs((x - med_x)/mad_x)
+}
+
+# Generating a dataframe with feature names, outlier count and outlier proportions are columns
+Outler_Count_df <- as.data.frame(colSums(CAD_clean_na[,-21] %>% apply(2, mod_z_score_abs) > 3)) %>% rename(`Outlier Count` = "colSums(CAD_clean_na[, -21] %>% apply(2, mod_z_score_abs) > 3)") %>% mutate(`Outlier Proportion (%)` = `Outlier Count`/nrow(CAD_clean_na)*100) %>% tibble::rownames_to_column() %>% rename(Features = rowname)
+
+# Generating a table  to add to the report 
+flextable::flextable(Outler_Count_df) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::border_outer() |> flextable::border_inner() |> flextable::bold(j=c(1:length(Outler_Count_df))) %>% flextable::color(~ `Outlier Proportion (%)` == max(`Outlier Proportion (%)`), color = "#FF0000", ~ `Outlier Proportion (%)`)
+
+# Extracting the name of the feture with maximum outlier proportion
+Var_max_outlier <- Outler_Count_df[which.max(Outler_Count_df$`Outlier Count`),]$Features
+Var_max_outlier_proportion <- Outler_Count_df[which.max(Outler_Count_df$`Outlier Count`),]$`Outlier Proportion (%)`
+```
+
+The outlier count and respective proportions by features is summarised in @tbl-data-z-score. For most of the features, the proportion of outliers is low. However, `r Var_max_outlier` is of concern as `r round(Var_max_outlier_proportion,2)`% of the data points in this feature are outliers.
+
+```{r}
+#| label: Outliers-SDs
+#| output: false
+
+# Function to identify if any of the outliers deviate significantly from the others.
+
+# Function to extract outliers with deviate from a given feature medians by a given number of mead absolute deviations (mad_threshold)
+Outlier_Bounds <- function(mad_threshold, data, Index=TRUE) {
+  data_median <- stats::median(data, na.rm = TRUE)
+  data_median_abs_deviation <- stats::mad(data, na.rm = TRUE)
+  lower_bound <- upper_bound <- all_bounds <- NULL
+  lower_bound_values <- upper_bound_values <- NULL
+  if (any(data < (data_median - (mad_threshold * data_median_abs_deviation)))){
+    lower_bound <- which(data < (data_median - (mad_threshold * data_median_abs_deviation)))
+    lower_bound_values <- data[lower_bound]
+  }
+  if (any(data > (data_median + (mad_threshold * data_median_abs_deviation)))){
+    upper_bound <- which(data > (data_median + (mad_threshold * data_median_abs_deviation))) 
+    upper_bound_values <- data[upper_bound]
+  }
+  all_bounds <- c(lower_bound, upper_bound)
+
+  if (is.null(all_bounds) == TRUE){
+    if (mad_threshold == 1){
+      return (paste("No data values beoynd", mad_threshold, "Median Absolute deviation"))
+    } else{
+      return (paste("No data values beoynd", mad_threshold, "Median Absolute deviations"))
+    }
+  } else{
+    if (Index == TRUE){
+      return (all_bounds)
+    } else {
+      data_median <- round(data_median, 3)
+  	  data_median_abs_deviation <- round(data_median_abs_deviation, 3)
+      if (!is.null(lower_bound_values)){
+        lower_bound_values = round(lower_bound_values, 3)
+      }
+      if (!is.null(upper_bound_values)){
+        upper_bound_values = round(upper_bound_values, 3)
+      }
+      return (c(paste("Median:", data_median), paste("Median Absolute deviation:", data_median_abs_deviation), paste("Lower Outlier Bounds:", paste(lower_bound_values, collapse = ",")), paste("Upper Outlier Bounds:", paste(upper_bound_values, collapse = ","))))
+    }
+  }
+}
+
+# Applying the Outlier_Bounds function to each feature in the dataset. 
+Feature_Outlier_Stats <- apply(CAD_clean_na[,-21], 2, function(data){Outlier_Bounds(mad_threshold=3, data, Index=FALSE)})
+Feature_Outlier_Stats
+```
+
+```{r}
+#| label: filter-outliers
+
+# Function to identify and remove outliers. This function uses the mod_z_score_abs() function to calculate z-scores to identify outliers.
+
+# Filtered data is not used for classification!
+Outlier_Filter <- function(data_frame){
+  # Requires mod_z_score_abs function
+  data_frame_filtered <- as.data.frame(data_frame[,-21] %>% apply(2, mod_z_score_abs) > 3)
+  data_frame_filtered_boolean <- as.data.frame(x = rowSums(data_frame_filtered) > 0)
+  data_frame %>% filter(!data_frame_filtered_boolean$`rowSums(data_frame_filtered) > 0`)
+}
+
+CAD_filtered <- Outlier_Filter(CAD_clean_na)
+```
+
+```{r}
+# label: tbl-outliers-by-label
+#| output: false
+# tbl-cap: Distribution of Outliers by Label
+# tbl-cap-location: bottom
+
+# Outlier_Finder <- function(data_frame){
+#   # Requires mod_z_score_abs function
+#   data_frame_filtered <- as.data.frame(data_frame[,-21] %>% apply(2, mod_z_score_abs) > 3)
+#   data_frame_filtered_boolean <- data_frame_filtered %>% mutate(True_Var = rowSums(data_frame_filtered) > 0)
+#   data_frame %>% mutate(True_Var = data_frame_filtered_boolean$True_Var)
+# }
+# 
+# CAD_Outliers <- Outlier_Finder(CAD_clean_na)
+# CAD_Outliers <- as.data.frame(CAD_Outliers %>% group_by(label) %>% dplyr::summarise(sum(True_Var))) 
+# names(CAD_Outliers)[names(CAD_Outliers) == "sum(True_Var)"] <- "Outlier Count"
+# CAD_Outliers_tbl <- as.data.frame(CAD_Outliers %>% tidyr::pivot_wider(names_from = label, values_from = `Outlier Count`))
+# CAD_Outliers_tbl <- CAD_Outliers_tbl %>% tibble::add_column(` ` = "Outlier Count", .before = 1)
+# 
+# label_distribution <- as.data.frame(summary(as.factor(CAD_filtered$label))) %>% tibble::rownames_to_column() %>% tidyr::pivot_wider(names_from = rowname, values_from = `summary(as.factor(CAD_filtered$label))`)
+# label_distribution_tbl <- as.data.frame(label_distribution)
+# label_distribution_tbl <- label_distribution_tbl %>% tibble::add_column(` ` = "Samples Remaining", .before = 1)
+# 
+# Outlier_Sumamry <- rbind(label_distribution_tbl, CAD_Outliers_tbl)
+# flextable::flextable(Outlier_Sumamry) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::border_outer() |> flextable::border_inner() 
+```
+
+Presence of outliers can lead to poor classification performances due to issues such as bias, increased error variance, etc. in the model. Although it is possible for the outliers to contain useful information in specific circumstances, given the limited information regarding the nature of the dataset, it is not possible to classify if a given data point is an outlier.
+
+```{r}
+#| label: fig-mahalobus-distance
+#| output: ture
+#| fig-height: 4
+#| fig-cap: Mahalobus Distance Distrbution
+#| fig-cap-location: bottom
+
+# Generating a hist plot to visualise the distribution of multivariate feature distances
+
+hist(assertr::maha_dist(CAD_clean_na[,-21]), main="Mahalobus Distance Distribution", xlab="Mahalobus Distance")
+```
+
+```{r}
+#| label: mahalobus-distance
+#| output: false
+
+# Generates indexes of samples with high mahalobus distances
+
+CAD_Maha_Distance <- CAD_clean_na[,-21] %>% assertr::maha_dist() 
+Samples_of_Concern <- CAD_clean_na[CAD_Maha_Distance > 45,]
+
+Indexes_of_Concern <- as.data.frame(tibble::rownames_to_column(Samples_of_Concern, var="Index"))$Index
+Indexes_of_Concern <- paste(Indexes_of_Concern, collapse = ", ")
+```
+
+Another approach to identify outliers is to consider multivariate distributions of individual samples (rows). This allows us to identify if a particular data point deviated significantly from the dominant trend. [@fig-mahalobus-distance; @fischetti2022] shows the distribution of mahalobus distances and few data points can be seen which have significantly higher distances compared to the rest. They are of concern, and it is recommended to verify these observations at the following row indexes:
+
+`r Indexes_of_Concern`
+
+### Data Summarisation {#sec-data-summarisation}
+
+Some of the key data summary statistics are summarised in @tbl-data-summary. Mean is used as the measure of central tendency. Two sets of features are visible based on mean values which can also be observed in @fig-outliers-0 and @fig-mean-std-distribution.
+
+```{r}
+#| label: tbl-data-summary
+#| output: true
+#| tbl-cap: Summary Statistics
+#| tbl-cap-location: bottom
+
+# Generating a table with some of the key summary statistics.
+data_describe <- as.data.frame(psych::describe(CAD_clean_na[,-21], quant=c(.25,.5,.75), skew=FALSE)) %>% dplyr::select(c(3:6,8:11)) %>% format(digits = 3) %>% dplyr::rename(Mean=mean, `Std Deviation`=sd, Min=min, Max=max, `Std Err`=se)
+
+# Adding feature names as an additional column to the dataframe.
+data_describe <- cbind(rownames(data_describe),data_describe)
+data_describe[,-1] <- lapply(data_describe[,-1], as.numeric)
+colnames(data_describe)[1]<-"Variable"
+
+# Converting the dataframe to a table and applying table formatting to add to the report.
+describe_tbl <- flextable::flextable(data_describe) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#CC0000", part = "header") |> flextable::bold(j=c(2,3)) %>% flextable::color(~ Mean > 1, color = "#A90404", ~ Mean) %>% flextable::color(~ `Std Deviation` > 0.5, color = "#3547E4", ~ `Std Deviation`) %>% flextable::color(~ Mean < 1, color = "#0A7586", ~ Mean) %>% flextable::color(~ `Std Deviation` < 0.5, color = "#985508", ~ `Std Deviation`)
+flextable::merge_v(describe_tbl, j="Variable")|> flextable::theme_vanilla()
+```
+
+```{r}
+# label: tbl-data-summary-0
+#| output: false
+# tbl-cap: Summary Statistics
+# tbl-cap-location: bottom
+
+# Generating a table of summary statistics grouped by label
+
+# Generating a table with some of the key summary statistics grouped by label.
+data_describeBy <- psych::describeBy(CAD_clean_na[,-21], group=CAD_clean_na$label ,mat=TRUE, digits=3, quant=c(0,.25,.5,.75,1), range=FALSE, skew=FALSE) %>% dplyr::select(c(2,4:6,8:12)) %>% dplyr::rename(Mean=mean, `Std Deviation`=sd)
+
+# Adding feature names as an additional column to the dataframe.
+data_describeBy <- cbind(rownames(data_describeBy),data_describeBy)
+colnames(data_describeBy)[1] = "Variable"
+data_describeBy$Variable<-gsub("[0-9]$","",data_describeBy$Variable)
+
+# Converting the dataframe to a table and applying table formatting. This table is not added to the report.
+describeBy_tbl <- flextable::flextable(data_describeBy) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header")  
+flextable::merge_v(describeBy_tbl, j="Variable")|> flextable::theme_vanilla() 
+```
+
+```{r}
+#| label: fig-mean-std-distribution
+#| output: ture
+#| fig-height: 4
+#| fig-cap: Distribution of Feature Means and Standard Deviations
+#| fig-cap-location: bottom
+
+# Generating a subplots to visualise feature mean and standard deviations. 
+
+# hist plot for feature means.
+p1 <- data_describe %>% ggplot2::ggplot() + ggplot2::geom_bar(ggplot2::aes(Variable, Mean, fill = Mean), stat = "identity") 
+
+# hist plot for feature standard deviations.
+p2 <- data_describe %>% ggplot2::ggplot() + ggplot2::geom_bar(ggplot2::aes(Variable, `Std Deviation`, fill = `Std Deviation`), stat = "identity")
+
+# Creating a 2-figure subplot with two rows.
+gridExtra::grid.arrange(p1, p2, nrow = 2)
+
+```
+
+Some features having significantly higher means and standard deviations compared to others could lead to biased classification models. Therefore, the data needs to be normalised.
+
+### Splitting training and test sets {#sec-train-test-split}
+
+To prevent information leak, the data is split into training and test samples [@kuhn2008] prior to normalisation. This allows us to train the classification models on the training data and measure their performances on the test data which is completely unknown to the model.
+
+```{r}
+#| label: data-train-test-split
+
+# Creating training, test and validation splits in 75%-15%-10% ratios respectively. 
+
+# Creating a random seed for reproducibility.
+set.seed(89)
+
+# Generating the training data split.
+train_index <- caret::createDataPartition(CAD_clean_na[,21], p=0.75, list=FALSE) # Allocating 75% of the data to the training set.
+CAD_clean_na_train <- CAD_clean_na[train_index,]
+CAD_clean_na_train$label <- as.factor(CAD_clean_na_train$label)
+
+# Generating test + validation data split.
+CAD_clean_na_test_val <- CAD_clean_na[-train_index,]
+CAD_clean_na_test_val$label <- as.factor(CAD_clean_na_test_val$label)
+
+# Generating test data split.
+test_index <- caret::createDataPartition(CAD_clean_na_test_val[,21], p=0.6, list=FALSE) # Ensuring 15% of the overall data is allocated to test set and 10% to the validation set. 
+CAD_clean_na_test <- CAD_clean_na_test_val[test_index,]
+
+# Generating validation data split.
+CAD_clean_na_validation <- CAD_clean_na_test_val[-test_index,]
+```
+
+```{r}
+#| label: tbl-data-train-test-split
+#| output: ture
+#| tbl-cap: Distribution of Labels in Training and Test Sets
+#| tbl-cap-location: bottom
+
+# Summarising the label distributions in training, test and validation splits.
+
+# Generates a list of unique labels.
+unique_labels <- unique(CAD_clean_na_train$label)
+
+# Generating and formatting a dataframe with training data labels.
+label_distribution_train <- as.data.frame(summary(CAD_clean_na_train$label)) %>% tibble::rownames_to_column() %>% tidyr::pivot_wider(names_from = rowname, values_from = `summary(CAD_clean_na_train$label)`) %>% tibble::add_column(` ` = "Training Set", .before = 1) %>% as.data.frame()
+
+# Generating and formatting a dataframe with test data labels.
+label_distribution_test <- as.data.frame(summary(CAD_clean_na_test$label)) %>% tibble::rownames_to_column() %>% tidyr::pivot_wider(names_from = rowname, values_from = `summary(CAD_clean_na_test$label)`) %>% tibble::add_column(` ` = "Test Set", .before = 1) %>% as.data.frame()
+
+# Generating and formatting a dataframe with validation data labels.
+label_distribution_validation <- as.data.frame(summary(CAD_clean_na_validation$label)) %>% tibble::rownames_to_column() %>% tidyr::pivot_wider(names_from = rowname, values_from = `summary(CAD_clean_na_validation$label)`) %>% tibble::add_column(` ` = "Validation Set", .before = 1) %>% as.data.frame()
+
+# Using rbind to combine the rows of the above dataframes to create a single dataframe of label distributions in training, test and validation splits.
+label_distribution <- rbind(label_distribution_train, label_distribution_test, label_distribution_validation)
+
+# Generating a dataframe consisting of the label distributions for the complete data.
+Total_distribution <- as_tibble(t(colSums(label_distribution[,-1]))) %>% tibble::add_column(` ` = "Total", .before = 1) %>% as.data.frame()
+
+# Adding the label distributions for the complete data to the label_distribution dataframe
+label_distribution <- rbind(label_distribution, Total_distribution)
+
+# Converting the dataframe to a table and applying table formatting. This table is not added to the report.
+flextable::flextable(label_distribution) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::border_outer() |> flextable::border_inner() |> flextable::bold(j=c(1)) 
+```
+
+`Label` distributions after training and test splits are summarised in @tbl-data-train-test-split.
+
+### Data Normalisation {#sec-data-normalisation}
+
+Data normalisation improves the interpretability of the data by changing the values of numeric features to a common scale. The data is normalised using `z-score`. z-score is measured by subtracting the feature mean from each value which is divided by the feature standard deviation as shown in @eq-z-score-measurement.
+
+$$
+Z_{score}(x) = \frac{x-\mu(x)}{\sigma(x)}
+$$ {#eq-z-score-measurement}
+
+```{r}
+#| label: data-normalisation
+
+# Normalising the data
+
+# Generating normalisation statistics from the training data
+Norm_fit <- caret::preProcess(CAD_clean_na_train[,-21], method = c("center", "scale"))
+
+# Normalising the training data using the normalisation statistics from the training data 
+CAD_Normalised_train <- predict(Norm_fit, CAD_clean_na_train[,-21])
+CAD_Normalised_train$label <- CAD_clean_na_train[,21]
+
+# Normalising the test data
+CAD_Normalised_test <- predict(Norm_fit, CAD_clean_na_test[,-21])
+CAD_Normalised_test$label <- CAD_clean_na_test[,21]
+
+# Normalising the validation data using the normalisation statistics from the training data
+CAD_Normalised_validation <- predict(Norm_fit, CAD_clean_na_validation[,-21])
+CAD_Normalised_validation$label <- CAD_clean_na_validation[,21]
+```
+
+```{r}
+# <!--
+# ### Distances Between Features {#sec-feature-distances}
+# 
+# Mean distances between the classification labels are plotted in @fig-euc-dist. It can be observed that feature E and B is relatively similar to other features in terms of euclidean distance metrics. This could mean that features E and B might be harder to classify accurately using distance metrics.
+# -->
+```
+
+```{r}
+#| label: fig-euc-dist
+#| output: false
+#| fig-height: 6
+#| fig-width: 8
+#| fig-cap: Mean Distances Between Features
+#| fig-cap-location: bottom
+
+# Plotting the distances between feature means by labels
+
+# Generating a dataframe of feature means grouped by labels
+CAD_Normalised_Mean_Class <- CAD_Normalised_train %>% group_by(label) %>% summarise(across(everything(), mean))
+CAD_Normalised_Mean_Class_Rows <- CAD_Normalised_Mean_Class$label
+CAD_Normalised_Mean_Class <- as.data.frame(CAD_Normalised_Mean_Class[,2:21])
+rownames(CAD_Normalised_Mean_Class) <- CAD_Normalised_Mean_Class_Rows
+
+# Generating the plot and applying formatting
+CAD_Label_Dist <- factoextra::get_dist(CAD_Normalised_Mean_Class,method="euclidean")
+factoextra::fviz_dist(CAD_Label_Dist,gradient=list(low="blue",mid="white",high="black"))
+```
+
+### Correlation Analysis {#sec-correlation}
+
+Correlation is a statistical measure which explains the relationship between two variables. Measure of correlation ranges between -1 and 1. Correlation values closer to 0 indicate weak correlation with 0 being no correlation and correlation values at the extremes indicate strong negative or positive correlations. @fig-corr-plot shows the correlations between features in the dataset.
+
+```{r}
+#| label: fig-corr-plot
+#| output: true
+#| fig-height: 5
+#| fig-width: 5
+#| fig-cap: Correlation between Features
+#| fig-cap-location: bottom
+
+# Generating a correlation plot
+corrplot::corrplot(cor(CAD_Normalised_train[,-21]), method="ellipse", type="lower")
+```
+
+Highly correlated features may contain redundant information and could lead to overfitting the classification model and effect its performance. In @sec-feature-selection, data is explored for dimensionality reduction and feature selection to investigate if any of the correlated features could be removed.
+
+## Dimensionality Reduction and Feature Selection {#sec-feature-selection}
+
+Dimensionality of a dataset increases with the number of features. Dimensionality reduction reduces the complexity of the classification model and in certain cases, improves the overall classification performance. Exploring the contribution of each feature to explain the variance in the dataset allows us to select important features to retain.
+
+### Principal Component Analysis (PCA) {#sec-principal-component-analysis}
+
+PCA is one of the commonly used dimensionality reduction techniques [@abdi2010]. It functions by projecting the n-dimensional feature space to a relatively smaller dimensional space called principal components. Each principal component is a linear combination of the original features at different proportions. The principal components are ordered with the first principal component explaining the most variance in the dataset followed by the second principal component and so on. A decision regarding the number of principal components to retain is made based on the amount of variance to retain.
+
+```{r}
+#| label: sampling-adequacy
+#| output: false
+
+# Generating Kaiser, Meyer, Olkin Measure of Sampling Adequacy to test if the dataset is suitable for dimensionality reduction.
+data_KMO <- psych::KMO(CAD_Normalised_train[,-21])
+data_KMO$MSA
+```
+
+```{r}
+# <!--
+# Kaiser-Meyer-Olkin (KMO) is Measure of Sampling Adequacy (MSA) which indicates if the features in a dataset contain shared information. A high MSA (usually greater than 0.5) indicate the presence of strong correlations which imply that the data is suitable for dimensionality reduction techniques such as Principal Component Analysis (PCA) or Factor Analysis (FA). The MSA for this dataset is `r round(data_KMO$MSA,3)`.
+# -->
+```
+
+#### Parallel Analysis {#sec-parallel-analysis}
+
+```{r}
+#| label: parallel-analysis
+
+# Performing parallel analysis to estimate the number of dimensions to retain.
+CAD_Normalised_train_paran <- paran::paran(CAD_Normalised_train[,-21], centile=95, all=TRUE)
+CAD_Normalised_train_principal_components <- CAD_Normalised_train_paran$Retained
+```
+
+Statistical methods such as parallel analysis can be used to estimate the number of principal components to retain. Parallel analysis is performed using `paran` library [@dinno2009] which recommends `r CAD_Normalised_train_principal_components` principal components to be retained.
+
+```{r}
+#| label: principal-component-analysis
+
+# Performing Principal Component Analysis
+
+# Using ade4::dudi.pca() function to perform principal component analysis using the number of principal components recommended by parallel analysis.
+CAD_Normalised_train_pca <- ade4::dudi.pca(CAD_Normalised_train[,-21], scannf=F, nf=CAD_Normalised_train_principal_components)
+```
+
+```{r}
+# label: fig-scree-plot
+#| output: false
+# fig-height: 6
+# fig-width: 6
+# fig-cap: Variance Explained by Principal Components
+# fig-cap-location: bottom
+
+# Plotting a scree plot to check the number of principal components to retain
+factoextra::fviz_screeplot(CAD_Normalised_train_pca)
+```
+
+```{r}
+# <!--
+# #### Eigen Analysis {#sec-eigen-analysis}
+# 
+# Eigen analysis is a mathematical technique which can be used to analyse the amount of information explained by each of the principal components. Eigen analysis decomposes the principal component data into eigen values and eigen vectors. The eigen vector with the highest eigen value corresponds to the first principal component. @tbl-eigen-analysis summarises the eigen values for each of the principal components and the amount of variance explained by them.
+# -->
+```
+
+*Please note the difference between dimensions in @tbl-eigen-analysis and features. Each dimension is a combination of multiple features at different proportions.*
+
+```{r }
+#| label: tbl-eigen-analysis
+#| output: true
+#| tbl-cap: Distribution of Labels in Training and Test Sets
+#| tbl-cap-location: bottom
+
+# Performing Eigen Analysis
+
+# Creating a dataframe with eigen analysis results and performing dataframe formatting by renaming columns.
+CAD_Normalised_train_eigen_analysis <- factoextra::get_eigenvalue(CAD_Normalised_train_pca) %>% tibble::rownames_to_column() %>% as.data.frame() %>% rename(Dimensions=rowname, Eigenvalue=eigenvalue, `Variance (%)`=variance.percent, `Cumulative Variance (%)`=cumulative.variance.percent)
+
+# Converting the dataframe to a table and applying table formatting to add to the report.
+CAD_Normalised_train_eigen_analysis_tbl <- flextable::flextable(CAD_Normalised_train_eigen_analysis) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::bold(j=1) |> flextable::bold(i=1:CAD_Normalised_train_principal_components) %>% flextable::color(part = "body", i = CAD_Normalised_train_principal_components, j = 4, color = "#FF0000")
+
+CAD_Normalised_train_eigen_analysis_tbl
+```
+
+Eigen values indicate the amount of variance captured by a principal component. The cumulative variance explained by the principal components recommended by parallel analysis is `r CAD_Normalised_train_eigen_analysis[4,CAD_Normalised_train_principal_components]`. This is of concern as significant amount of variance is not retained.
+
+#### PCA Observations {#sec-pca}
+
+Feature contributions to each of the principal components is summarised in [@tbl-pca-scores; @dray2007] with the most dominant features for each principal component highlighted.
+
+```{r}
+#| label: tbl-pca-scores
+#| output: ture
+#| tbl-cap: Feature Contributions to Principal Components
+#| tbl-cap-location: bottom
+
+# Generating a table with pca column coordinates.
+
+# Creating a feature with PCA column coordinates and feature names.
+CAD_Normalised_train_pca_scores <- as.data.frame(round(CAD_Normalised_train_pca$co,3)) %>% tibble::rownames_to_column() %>% as.data.frame() %>% dplyr::rename(Features = rowname)
+
+# Creating a table from the data frame and applying formatting to add to the report. 
+CAD_Normalised_train_pca_scores_tbl <- flextable::flextable(CAD_Normalised_train_pca_scores) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::border_outer() |> flextable::border_inner() |> flextable::bold(j=1) 
+
+# Applying further table formatting. Using a for loop to iterate through each pca column coordinate to highlight elements whose absolute value is greater than 0.5 and corresponding feature names. This is intended to visualise feature contributions to each component.
+for (i in 2:ncol(CAD_Normalised_train_pca_scores)){
+  col <- colnames(CAD_Normalised_train_pca_scores)[i]
+  val_interest <- CAD_Normalised_train_pca_scores[which(abs(CAD_Normalised_train_pca_scores[,i])>0.5),i]
+  CAD_Normalised_train_pca_scores_tbl <- flextable::color(CAD_Normalised_train_pca_scores_tbl, as.formula(sprintf("~ %s %%in%% c(%s)", col, paste(val_interest, collapse = ", "))), color = "#FF0000", as.formula(sprintf("~ %s + Features", col)))
+}
+CAD_Normalised_train_pca_scores_tbl
+```
+
+```{r}
+#| label: feature-pc-association
+
+# Generating text describing the dominant features in each pca component.
+
+# Function which takes returns text describing feature association to each component based on a cutoff_threshold. All the features with absolute contributions more than the cutoff_threshold will be highlighted and a corresponding text statement is generated which is used in the report.
+Feature_Dimension_Loadings <- function(pca_loadings, cutoff_threshold){
+  # Identifies the dominant features in pca loadings (eigen vector)
+  Sentence = ""
+  end = 0
+  for (i in 1:length(pca_loadings)){
+    dimension <- paste0("Principal Component ", i)
+    dominant_features <- row.names(pca_loadings[abs(pca_loadings[,i])>cutoff_threshold,])
+    string = ""
+    if (i == length(pca_loadings)){
+      end = 1
+    }
+    for (i in 1:length(dominant_features)){
+      if (i == length(dominant_features)-1){
+        string <- paste0(string, dominant_features[i], " and ")
+      } else if (i == length(dominant_features)){
+        string <- paste0(string, dominant_features[i])
+      } else{
+        string <- paste0(string, dominant_features[i], ", ")
+      }
+    }
+    if (end == 0){
+      Sentence <- paste0(Sentence, dimension, ": ", string, ", ") 
+    } else {
+      Sentence <- paste0(Sentence, dimension, ": ", string)
+    }
+  }
+  Sentence
+}
+
+pca_co <- CAD_Normalised_train_pca$co
+Feature_Association <-  Feature_Dimension_Loadings(pca_co, 0.5)
+```
+
+Dominant feature associations with each of the principal components are as follows:
+
+`r Feature_Association`
+
+@fig-pca-feature-interpretation visualises feature loadings across the principal components. The length of an arrow corresponding to each feature along a principal component indicates the strength of its association with it.
+
+```{r}
+#| label: fig-pca-feature-interpretation
+#| output: ture
+#| fig-height: 8
+#| fig-width: 8
+#| fig-cap: Feature Association with Principal Components
+#| fig-cap-location: bottom
+
+# Plotting pca biplots to visualise dominant features for each dimension.
+
+# pca biplot for axes 1, 2
+sub_plot1 <- factoextra::fviz_pca_biplot(CAD_Normalised_train_pca, axes=c(1,2), repel=T, label="var", geom="", title = "")
+
+# pca biplot for axes 1, 3
+sub_plot2 <- factoextra::fviz_pca_biplot(CAD_Normalised_train_pca, axes=c(1,3), repel=T, label="var", geom="", title = "")
+
+# pca biplot for axes 2, 3
+sub_plot3 <- factoextra::fviz_pca_biplot(CAD_Normalised_train_pca, axes=c(2,3), repel=T, label="var", geom="", title = "")
+
+# pca biplot for axes 3, 4
+sub_plot4 <- factoextra::fviz_pca_biplot(CAD_Normalised_train_pca, axes=c(3,4), repel=T, label="var", geom="", title = "")
+
+# Creating a subplot with 2 rows and 2 columns
+ggpubr::ggarrange(sub_plot1, sub_plot2, sub_plot3, sub_plot4, ncol = 2, nrow = 2, common.legend = TRUE, legend = "right")
+```
+
+@fig-pca-lable-interpretation visualises [@kassambara2016a] the distribution of samples corresponding to each label when projected along different principal axes. There is substantial overlap for the samples corresponding to labels B and E. This suggests that PCA may not be a suitable option for dimensionality reduction. <!-- This aligns with the distance metrics discussed in @fig-euc-dist. -->
+
+```{r}
+#| label: fig-pca-lable-interpretation
+#| output: ture
+#| fig-height: 8
+#| fig-width: 8
+#| fig-cap: Label Distribution With Principal Components
+#| fig-cap-location: bottom
+
+# Plotting samples grouped by labels across different pca dimensions to visualise label spread.
+
+sub_plot5 <- factoextra::fviz_pca_ind(CAD_Normalised_train_pca,axes=c(2,3),
+             geom.ind = "point", 
+             col.ind = CAD_Normalised_train$label, 
+             addEllipses = TRUE, 
+            legend.title = "Groups", title="") # Results collaborate with figure @fig-euc-dist
+
+sub_plot6 <- factoextra::fviz_pca_ind(CAD_Normalised_train_pca,axes=c(1,2),
+             geom.ind = "point", 
+             col.ind = CAD_Normalised_train$label, 
+             addEllipses = TRUE,
+            legend.title = "Groups", title="")
+
+# Creating a subplot with 2 rows and 1 column.
+ggpubr::ggarrange(sub_plot5, sub_plot6, ncol = 1, nrow = 2, common.legend = TRUE, legend = "right")
+```
+
+### Decision Tree and Random Forest for Feature Selection {#sec-dt-rf-feature-selection}
+
+Decision Trees (DT) provide an alternative method for feature selection. DT estimates importance of each feature using metrics such as Gini impurity or information gain. Feature selection can subsequently be performed by selecting features with most importance. `R rpart` library [@therneau2022] is used to generate a DT model.
+
+```{r}
+#| label: decision-tree 
+
+# Fitting a decision tree model for feature selection.
+CAD_Normalised_train_dt_fit <- rpart::rpart(label~., data=CAD_Normalised_train, method="class", control=rpart::rpart.control(cp = 0.01))
+```
+
+```{r}
+#| label: fig-decision-tree 
+#| output: ture
+#| fig-height: 6
+#| fig-width: 8
+#| fig-cap: Node Selection Using Decision Tree
+#| fig-cap-location: bottom
+
+# Plotting generated decision tree.
+rpart.plot::rpart.plot(CAD_Normalised_train_dt_fit, type=4)
+```
+
+The series of decisions used by a DT model are plotted in @fig-decision-tree. It can be observed that only a subset of the original features is used in the decision making process. <!-- Data at each node on the DT is split in such a way to maximise the information gain in the subsequent subsets. -->
+
+```{r}
+#| label: dt-feature-selection
+
+# Estimating feature importance based on decision tree and generating a new cropped dataset with only the selected features.
+
+# Obtaining feature importance from decision tree and generating a list of features to be used.
+Var_Imp_dt <- CAD_Normalised_train_dt_fit$variable.importance
+Features_Selected_dt <- (Var_Imp_dt %>% as.data.frame() %>% rownames())[Var_Imp_dt>40]
+
+# Generating new dataframes for training, test and validation splits with features selected using decision tree.
+CAD_Normalised_train_cropped_dt <- CAD_Normalised_train[,Features_Selected_dt] 
+CAD_Normalised_train_cropped_dt$label <- CAD_Normalised_train$label
+CAD_Normalised_test_cropped_dt <- CAD_Normalised_test[,Features_Selected_dt]
+CAD_Normalised_test_cropped_dt$label <- CAD_Normalised_test$label
+CAD_Normalised_validation_cropped_dt <- CAD_Normalised_validation[,Features_Selected_dt]
+CAD_Normalised_validation_cropped_dt$label <- CAD_Normalised_validation$label
+```
+
+Based on DT feature importance, the selected features are: `r NamesToSentence(Features_Selected_dt, length(Features_Selected_dt))`.
+
+Random forest (RF) can be seen as an extension to decision trees. RF generates multiple random subsets of samples and features, and DT models are trained on them. These multiple DT models are aggregated for a final optimised estimation. `R randomForest` library [@liaw2002] is used to generate a RF model and perform feature selection.
+
+```{r}
+#| label: random-forest
+
+# Fitting a random forest model for feature selection.
+CAD_Normalised_train_rf_fit <- randomForest::randomForest(label~.,data = CAD_Normalised_train,importance=TRUE)
+```
+
+```{r}
+#| label: fig-rf-var-importance-plot
+#| output: ture
+#| fig-height: 6
+#| fig-width: 8
+#| fig-cap: Random Forest Feature Importance
+#| fig-cap-location: bottom
+
+# Plotting a feature importance plot for random forest model based on MeanDecreaseGini (type=2).
+randomForest::varImpPlot(CAD_Normalised_train_rf_fit, type=2, scale=FALSE, cex=0.75, main="Feature Importance")
+```
+
+```{r}
+#| label: rf-feature-selection
+
+# Estimating feature importance based on random forest and generating a new cropped dataset with only the selected features.
+
+# Obtaining feature importance from random forest and generating a list of features to be used.
+Var_Imp_rf <- CAD_Normalised_train_rf_fit$importance[,"MeanDecreaseGini"][order(-CAD_Normalised_train_rf_fit$importance[,"MeanDecreaseGini"])]
+Features_Selected_rf <- (Var_Imp_rf %>% as.data.frame() %>% rownames())[Var_Imp_rf>40]
+
+# Generating new dataframes for training, test and validation splits with features selected using random forest.
+CAD_Normalised_train_cropped_rf <- CAD_Normalised_train[,Features_Selected_rf] 
+CAD_Normalised_train_cropped_rf$label <- CAD_Normalised_train$label
+CAD_Normalised_test_cropped_rf <- CAD_Normalised_test[,Features_Selected_rf]
+CAD_Normalised_test_cropped_rf$label <- CAD_Normalised_test$label
+CAD_Normalised_validation_cropped_rf <- CAD_Normalised_validation[,Features_Selected_rf]
+CAD_Normalised_validation_cropped_rf$label <- CAD_Normalised_validation$label
+```
+
+Based on random forest feature importance, the selected features are: `r NamesToSentence(Features_Selected_rf, length(Features_Selected_rf))`.
+
+Since RFs generate multiple DT models for estimations, their execution times are longer compared to DT. RF decision making process is also not as interpretable as DTs. However, the RF models are not tightly constrained around the training data and RF models usually tend to have better classification accuracy on the test data.
+
+## Classification {#sec-classification}
+
+Classification is a supervised learning technique where predictions are made based on models trained using labelled inputs. Prior to classifying the data, a classification model is trained to identify relationships and patterns between the features. The knowledge of the statistical properties of the training data is used to classify new unknown data samples.
+
+```{r}
+#| label: pca-dt-rf
+
+# Applying pca transformation on the data to be used for classification using the pca model that was fit using the training data.
+
+# Applying pca transformation on the training data with all the features
+CAD_Normalised_train_pca_data <- predict(CAD_Normalised_train_pca, CAD_Normalised_train[,-21])
+CAD_Normalised_train_pca_data$label <- CAD_Normalised_train$label
+
+# Applying pca transformation on the test data with all the features
+CAD_Normalised_test_pca_data <- predict(CAD_Normalised_train_pca, CAD_Normalised_test[,-21])
+CAD_Normalised_test_pca_data$label <- CAD_Normalised_test$label
+
+# Applying pca transformation on the validation data with all the features
+CAD_Normalised_validation_pca_data <- predict(CAD_Normalised_train_pca, CAD_Normalised_validation[,-21])
+CAD_Normalised_validation_pca_data$label <- CAD_Normalised_validation$label
+```
+
+@fig-pairs-panels shows the correlations and distributions of the features selected using DT and RF models. The distribution of the features appears to be approximately normal and most of the features are not highly correlated. These are some of the essential assumptions regarding the statistical properties of the data.
+
+```{r}
+#| label: fig-pairs-panels
+#| output: true
+#| fig-width: 8
+#| fig-cap: Histograms and Correlations for the Training Data
+#| fig-subcap:
+#|   - Distribution of DT Selected Features
+#|   - Distribution of RF Selected Features
+#| cap-location: bottom
+
+# Using psych::pairs.panels function to plot bivariate scatter plots to explore pairwise relationships between features selected using decision tree and random forest.
+psych::pairs.panels(CAD_Normalised_train_cropped_dt[,-which(names(CAD_Normalised_train_cropped_dt) == "label")])
+psych::pairs.panels(CAD_Normalised_train_cropped_rf[,-which(names(CAD_Normalised_train_cropped_rf) == "label")])
+```
+
+@fig-multivariate-normal-dist shows the presence of multivariate normal distributions in the data.
+
+```{r}
+#| label: fig-multivariate-normal-dist
+#| output: true
+#| fig-width: 8
+#| fig-height: 8
+#| fig-cap: Multivariate Normal Distributions
+
+# Plotting density plots between features to investigate if multivariate normal distributions exist.
+
+sub_plot7 <- CAD_Normalised_train_cropped_rf %>% ggplot2::ggplot(ggplot2::aes(x = X9, y = X10)) + ggplot2::geom_point(alpha = 0.1) + ggplot2::geom_density_2d_filled(alpha=0.75)
+
+sub_plot8 <- CAD_Normalised_train_cropped_rf %>% ggplot2::ggplot(ggplot2::aes(x = X7, y = X9)) + ggplot2::geom_point(alpha = 0.1) + ggplot2::geom_density_2d_filled(alpha=0.75)
+
+# Plotting a subplot with 2 rows and 1 column.
+ggpubr::ggarrange(sub_plot7, sub_plot8, ncol = 1, nrow = 2, common.legend = TRUE, legend = "right")
+```
+
+Based on the performances on training and test data, RF and MclustDA discriminant analysis are selected to be the potential classification models suitable for this dataset. Random Forest is non-parametric and makes no explicit assumptions regarding the distribution of the data. MclustDA discriminant analysis is suitable when the data follows multivariate normal distribution. Performances of RF and MclustDA are compared using confusion matrices and F1 scores. F1 score is the measure of model's accuracy, and it is calculated as shown in @eq-F1-score-measurement:
+
+$$
+F1_{score} = \frac{2 * (Precision * Recall)}{(Precision + Recall)}
+$$ {#eq-F1-score-measurement}
+
+$$
+Precision = \frac{TruePositives}{TruePositives + FalseNegatives}
+$$ {#eq-precision}
+
+$$
+Recall = \frac{TruePositives}{TruePositives + FalsePositives}
+$$ {#eq-recall}
+
+```{r}
+# ### K-Nearest Neighours {#sec-knn-classification}
+# 
+# K-Nearest Neighbours (KNN) is a non-parametric algorithm used for classification. KNN estimates the distances to every other point in the dataset and groups them based on k-nearest neighbours. This model is based on the assumption that data points belonging to a given label exist in close proximity to eachother in the feature space. Therefore, for a given set of features, the labels of k nearest neighbours are evaluated and the a label is assigned to the sample based on the majority vote. `class::knn` function [@venables2002; @theodoridis2001] is used to train the knn model.
+```
+
+```{r}
+#| label: knn-classification-function
+
+# Function to estimate KNN performance metrics such as accuracy, f1 score and confusion matrix.
+knn_class <- function(train_set, test_set, kn){
+  
+  # Generating label index which indicates the index of label feature.
+  label_index <- which(names(train_set)=="label")
+  
+  # Fitting a KNN model with kn nearest neighbours.
+  train_knn_fit <- class::knn(train=train_set[,-label_index], test=test_set[,-label_index], cl=train_set[,label_index], k = kn, prob=TRUE)
+  
+  # Generating a table representing KNN confusion matrix.
+  knn_ConfusionMatrix_tbl <- table(test_set[,label_index],train_knn_fit[1:length(test_set[,label_index])])
+  
+  # Converting the confusion matrix table to a dataframe format and converting the dataframe to wide format.
+  knn_ConfusionMatrix <- knn_ConfusionMatrix_tbl %>% as.data.frame() %>% tidyr::pivot_wider(names_from = Var1, values_from = Freq) %>% rename(" "=Var2)
+  
+  # Creating a table from the data frame and applying formatting functions. 
+  knn_ConfusionMatrix_ft <- flextable::flextable(knn_ConfusionMatrix) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::color(j = 1, color = "#FF0000") |> flextable::bold(j = 1)
+  
+  # Estimating KNN accuracy.
+  knn_accuracy <- sum(diag(knn_ConfusionMatrix_tbl)) / sum(knn_ConfusionMatrix_tbl)
+  
+  # Estimating KNN F1 score.
+  knn_f1 <- MLmetrics::F1_Score(test_set$label, train_knn_fit[1:nrow(test_set)])
+  
+  # Returning the required variables.
+  return (list(knn_accuracy, knn_ConfusionMatrix_ft, knn_f1))
+}
+```
+
+```{r}
+#| label: optimise-knn-params
+
+# Function to estimate best model parameters.
+model_optimiser <- function(data, model, control_parameters, tunegrid){
+  model_opt <- caret::train(label~., data=data, method=model, trControl=control_parameters, tuneGrid=tunegrid)
+  return (model_opt$bestTune)
+}
+```
+
+```{r}
+#| label: knn-classification-main
+
+# Generating control parameters for 5 fold cross validation.
+control_parameters <- caret::trainControl(method="cv", number=5)
+# Tune grid with the range of values for "k" nearest neighbours to check during model optimisation.
+tunegrid <- expand.grid(k=seq(10,50,2))
+# Defining the model name to be used in model_optimiser optimiser function.
+model <- "knn"
+
+# Optimising the KNN model to be used with all the features.
+kn_knn <- model_optimiser(CAD_Normalised_train, model, control_parameters, tunegrid)
+# Estimating the performance of KNN model with all the features using knn_class() function.
+CAD_Normalised_knn <- knn_class(CAD_Normalised_train, CAD_Normalised_test, kn_knn)
+# Extracting the performance statistics for KNN model with all the features.
+CAD_Normalised_knn_accuracy <- CAD_Normalised_knn[[1]]
+CAD_Normalised_knn_ConfusionMatrix_ft <- CAD_Normalised_knn[[2]]
+CAD_Normalised_knn_f1 <- CAD_Normalised_knn[[3]]
+
+# Optimising the KNN model to be used with the pca transformed data.
+kn_knn_pca <- model_optimiser(CAD_Normalised_train_pca_data, model, control_parameters, tunegrid)
+# Estimating the performance of KNN model with pca transformed data using knn_class() function.
+CAD_Normalised_knn_pca <- knn_class(CAD_Normalised_train_pca_data, CAD_Normalised_test_pca_data, kn_knn_pca)
+# Extracting the performance statistics for KNN model with pca transformed data.
+CAD_Normalised_knn_pca_accuracy <- CAD_Normalised_knn_pca[[1]]
+CAD_Normalised_knn_pca_ConfusionMatrix_ft <- CAD_Normalised_knn_pca[[2]]
+CAD_Normalised_knn_pca_f1 <- CAD_Normalised_knn_pca[[3]]
+
+# Optimising the KNN model to be used with features selected using decision tree.
+kn_knn_dt <- model_optimiser(CAD_Normalised_train_cropped_dt, model, control_parameters, tunegrid)
+# Estimating the performance of KNN model with features selected using decision tree using knn_class() function.
+CAD_Normalised_knn_dt <- knn_class(CAD_Normalised_train_cropped_dt, CAD_Normalised_test_cropped_dt, kn_knn_dt)
+# Extracting the performance statistics for KNN model with features selected using decision tree.
+CAD_Normalised_knn_dt_accuracy <- CAD_Normalised_knn_dt[[1]]
+CAD_Normalised_knn_dt_ConfusionMatrix_ft <- CAD_Normalised_knn_dt[[2]]
+CAD_Normalised_knn_dt_f1 <- CAD_Normalised_knn_dt[[3]]
+
+# Optimising the KNN model to be used with features selected using random forest.
+kn_knn_rf <- model_optimiser(CAD_Normalised_train_cropped_rf, model, control_parameters, tunegrid)
+# Estimating the performance of KNN model with features selected using random forest using knn_class() function.
+CAD_Normalised_knn_rf <- knn_class(CAD_Normalised_train_cropped_rf, CAD_Normalised_test_cropped_rf, kn_knn_rf)
+# Extracting the performance statistics for KNN model with features selected using random forest.
+CAD_Normalised_knn_rf_accuracy <- CAD_Normalised_knn_rf[[1]]
+CAD_Normalised_knn_rf_ConfusionMatrix_ft <- CAD_Normalised_knn_rf[[2]]
+CAD_Normalised_knn_rf_f1 <- CAD_Normalised_knn_rf[[3]]
+```
+
+```{r}
+#| label: tbl-knn-confusion-matrix
+#| output: false
+#| tbl-cap: KNN Confusion Matrix
+#| tbl-subcap: 
+#|  - KNN With All Features
+#|  - KNN Using PCA Transformed Data
+#|  - KNN With Features Selected Using DT
+#|  - KNN With Features Selected Using Decision RF
+#| tbl-cap-location: bottom
+
+# Printing the confusion matrices for evaluated KNN models. 
+# These results are not included in the report!
+CAD_Normalised_knn_ConfusionMatrix_ft
+CAD_Normalised_knn_pca_ConfusionMatrix_ft
+CAD_Normalised_knn_dt_ConfusionMatrix_ft
+CAD_Normalised_knn_rf_ConfusionMatrix_ft
+```
+
+```{r}
+# <!--
+# Observing the classification performances, KNN model doesn't seem to be a good fit for the chemical analysis dataset. 
+# 
+# KNN assigns equal importance to all features. When the number of features is large and in the presence of noisy features, KNN may not be the optimum choice. An accuracy of `r # round(CAD_Normalised_knn_accuracy, 2)` is observed. When features recommended by RF are used, accuracy of `r # round(CAD_Normalised_knn_rf_accuracy, 2)` is observed. The corresponding confusion matrices are summarised in @tbl-knn-confusion-matrix. KNN is able to accurately classify all the labels except `E` due to the nature of distribution of samples corresponding to `E`.
+# -->
+```
+
+```{r}
+# <!--
+# ### Decision Tree {#sec-dt-classification}
+# 
+# Decision tree is a supervised machine learning algorithm which can be used for classifications. Decision trees (DT) partition the feature space into smaller sub-spaces and trains the model to learn simple decision rules. It produces a flowchart of the decision making process which resembles a tree like structure where each node on the flowchart is a branch where decisions are made. A sequence of these branches lead to the end of the tree or a leaf which represents the final classification. A path can be traced from the initial point to the final classification by making decisions based on the feature space. `rpart::rpart` function [@therneau2022a; @breiman2017] is used to train the DT model.
+# -->
+```
+
+```{r}
+#| label: dt-classification-function
+
+# Function to estimate decision tree performance metrics such as accuracy, f1 score and confusion matrix.
+dt_class <- function(train_set, test_set, cp){
+  
+  # Generating label index which indicates the index of label feature.
+  label_index <- which(names(train_set)=="label")
+  
+  # Fitting a decision tree model with cp complexity parameter.
+  train_dt_fit <- rpart::rpart(label~., data=train_set, method="class", control=rpart::rpart.control(cp = cp)) # 0.005
+  
+  # Generating a table representing decision tree confusion matrix.
+  dt_predict <- predict(train_dt_fit, test_set[,-label_index], type="class")
+  
+  # Converting the confusion matrix table to a dataframe format and converting the dataframe to wide format.
+  dt_confusion_Matrix <- caret::confusionMatrix(dt_predict, test_set$label)
+  dt_confusion_Matrix_tbl <- dt_confusion_Matrix$table
+  dt_confusion_Matrix_df <- dt_confusion_Matrix_tbl %>% as.data.frame() %>% tidyr::pivot_wider(names_from = Reference, values_from = Freq) %>% as.data.frame() %>% rename(" " = Prediction)
+  
+  # Creating a table from the data frame and applying formatting functions. 
+  dt_confusion_Matrix_ft <- flextable::flextable(dt_confusion_Matrix_df) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::color(j = 1, color = "#FF0000") |> flextable::bold(j = 1)
+  
+  # Estimating decision tree accuracy.
+  dt_accuracy <- mean(dt_predict == test_set$label)
+  
+  # Estimating decision tree F1 score.
+  dt_f1 <- MLmetrics::F1_Score(test_set$label, dt_predict)
+  
+  # Returning the required variables.
+  return (list(dt_accuracy, dt_confusion_Matrix_ft, dt_f1))
+}
+```
+
+```{r}
+#| label: dt-classification-main
+
+# Generating control parameters for 5 fold cross validation.
+control_parameters <- caret::trainControl(method="cv", number=5)
+# Tune grid with the range of values for complexity parameter to check during model optimisation.
+tunegrid <- expand.grid(cp=seq(0.001, 0.01, by = 0.001))
+# Defining the model name to be used in model_optimiser optimiser function.
+model <- "rpart"
+
+# Optimising the decision tree model to be used with all the features.
+cp_dt <- model_optimiser(CAD_Normalised_train, model, control_parameters, tunegrid)
+# Estimating the performance of decision tree model with all the features using dt_class() function.
+CAD_Normalised_dt <- dt_class(CAD_Normalised_train, CAD_Normalised_test, cp_dt)
+# Extracting the performance statistics for decision tree model with all the features.
+CAD_Normalised_dt_accuracy <- CAD_Normalised_dt[[1]]
+CAD_Normalised_dt_ConfusionMatrix_ft <- CAD_Normalised_dt[[2]]
+CAD_Normalised_dt_f1 <- CAD_Normalised_dt[[3]]
+
+# Optimising the decision tree model to be used with the pca transformed data.
+cp_dt_pca <- model_optimiser(CAD_Normalised_train_pca_data, model, control_parameters, tunegrid)
+# Estimating the performance of decision tree model with pca transformed data using dt_class() function.
+CAD_Normalised_dt_pca <- dt_class(CAD_Normalised_train_pca_data, CAD_Normalised_test_pca_data, cp_dt_pca)
+# Extracting the performance statistics for decision tree model with pca transformed data.
+CAD_Normalised_dt_pca_accuracy <- CAD_Normalised_dt_pca[[1]]
+CAD_Normalised_dt_pca_ConfusionMatrix_ft <- CAD_Normalised_dt_pca[[2]]
+CAD_Normalised_dt_pca_f1 <- CAD_Normalised_dt_pca[[3]]
+
+# Optimising the decision tree model to be used with features selected using decision tree.
+cp_dt_dt <- model_optimiser(CAD_Normalised_train_cropped_dt, model, control_parameters, tunegrid)
+# Estimating the performance of decision tree model with features selected using decision tree using dt_class() function.
+CAD_Normalised_dt_dt <- dt_class(CAD_Normalised_train_cropped_dt, CAD_Normalised_test_cropped_dt, cp_dt_dt)
+# Extracting the performance statistics for decision tree model with features selected using decision tree.
+CAD_Normalised_dt_dt_accuracy <- CAD_Normalised_dt_dt[[1]]
+CAD_Normalised_dt_dt_ConfusionMatrix_ft <- CAD_Normalised_dt_dt[[2]]
+CAD_Normalised_dt_dt_f1 <- CAD_Normalised_dt_dt[[3]]
+```
+
+```{r}
+#| label: tbl-dt-confusion-matrix
+#| output: false
+#| tbl-cap: Decision Tree Confusion Matrix
+#| tbl-subcap: 
+#|  - Decision Tree With All Features
+#|  - Decision Tree Using PCA Transformed Data
+#|  - Decision Tree With Features Selected Using DT
+#| tbl-cap-location: bottom
+
+# Printing the confusion matrices for evaluated decision tree models. 
+# These results are not included in the report!
+CAD_Normalised_dt_ConfusionMatrix_ft
+CAD_Normalised_dt_pca_ConfusionMatrix_ft
+CAD_Normalised_dt_dt_ConfusionMatrix_ft
+```
+
+```{r}
+# Observing the classification performances, decision tree model doesn't seem to be a good fit for the chemical analysis dataset.
+# 
+# An accuracy of `r # round(CAD_Normalised_dt_dt_accuracy, 2)` is observed using DT recommended features. The corresponding confusion matrix is summarised in @tbl-dt-confusion-matrix. While DT is able to achieve greater accuracy in predicting `E` than KNN, the overall accuracy is still low. One of the major concerns with DT is that they can be prone to overfitting where the model is too tightly trained fit the training data and may lead to poor performance when presented with new data.
+```
+
+### Random Forest {#sec-rf-classification}
+
+As discussed in @sec-dt-rf-feature-selection, RF is an extension to DT which solves the overfitting issue. `randomForest::randomForest` function [@liaw2002a; @breiman2001] is used to train the RF model.
+
+```{r}
+# Random forest generates multiple subsets of data with randomised subsets of features from the original dataset. Multiple decision trees are generated based on these subsets and the results are combined to train an optimised classification model. 
+```
+
+```{r}
+#| label: rf-classification-function
+
+# Function to estimate random forest performance metrics such as accuracy, f1 score and confusion matrix.
+rf_class <- function(train_set, test_set, mtry){
+  
+  # Generating label index which indicates the index of label feature.
+  label_index <- which(names(train_set)=="label")
+  
+  # Fitting a random forest model with mtry number of randomly sampled variables as candidates at each split.
+  train_rf_fit <- randomForest::randomForest(label~.,data = train_set, mtry=mtry)
+  
+  # Generating table representing random forest confusion matrix.
+  rf_predict <- predict(train_rf_fit, test_set[,-label_index], type="class")
+  
+  # Converting the confusion matrix table to a dataframe format and converting the dataframe to wide format.
+  rf_confusion_Matrix <- caret::confusionMatrix(rf_predict, test_set$label)
+  rf_confusion_Matrix_tbl <- rf_confusion_Matrix$table
+  rf_confusion_Matrix_df <- rf_confusion_Matrix_tbl %>% as.data.frame() %>% tidyr::pivot_wider(names_from = Reference, values_from = Freq) %>% as.data.frame() %>% rename(" " = Prediction)
+  
+  # Creating a table from the data frame and applying formatting functions. 
+  rf_confusion_Matrix_ft <- flextable::flextable(rf_confusion_Matrix_df) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::color(j = 1, color = "#FF0000") |> flextable::bold(j = 1)
+  
+  # Estimating random forest accuracy.
+  rf_accuracy <- mean(rf_predict == test_set$label)
+  
+  # Estimating random forest F1 score.
+  rf_f1 <- MLmetrics::F1_Score(test_set$label, rf_predict)
+  
+  # Returning the required variables.
+  return (list(rf_accuracy, rf_confusion_Matrix_ft, rf_f1, train_rf_fit))
+}
+```
+
+```{r}
+#| label: rf-classification-main
+
+# Generating control parameters for 5 fold cross validation.
+control_parameters <- caret::trainControl(method="cv", number=5)
+# Tune grid with the range of values for mtry number of randomly sampled variables to check during model optimisation.
+tunegrid <- expand.grid(mtry=1:4)
+# Defining the model name to be used in model_optimiser optimiser function.
+model <- "rf"
+
+# Optimising the random forest model to be used with all the features.
+mtry_rf <- model_optimiser(CAD_Normalised_train, model, control_parameters, tunegrid)
+# Estimating the performance of random forest model with all the features using rf_class() function.
+CAD_Normalised_rf <- rf_class(CAD_Normalised_train, CAD_Normalised_test, mtry_rf$mtry)
+# Extracting the performance statistics for random forest model with all the features.
+CAD_Normalised_rf_accuracy <- CAD_Normalised_rf[[1]]
+CAD_Normalised_rf_ConfusionMatrix_ft <- CAD_Normalised_rf[[2]]
+CAD_Normalised_rf_f1 <- CAD_Normalised_rf[[3]]
+
+# Optimising the random forest model to be used with the pca transformed data.
+mtry_rf_pca <- model_optimiser(CAD_Normalised_train_pca_data, model, control_parameters, tunegrid)
+# Estimating the performance of random forest model with pca transformed data using rf_class() function.
+CAD_Normalised_rf_pca <- rf_class(CAD_Normalised_train_pca_data, CAD_Normalised_test_pca_data, mtry_rf_pca$mtry)
+# Extracting the performance statistics for random forest model with pca transformed data.
+CAD_Normalised_rf_pca_accuracy <- CAD_Normalised_rf_pca[[1]]
+CAD_Normalised_rf_pca_ConfusionMatrix_ft <- CAD_Normalised_rf_pca[[2]]
+CAD_Normalised_rf_pca_f1 <- CAD_Normalised_rf_pca[[3]]
+
+# Optimising the random forest model to be used with features selected using random forest.
+mtry_rf_rf <- model_optimiser(CAD_Normalised_train_cropped_rf, model, control_parameters, tunegrid)
+# Estimating the performance of random forest model with features selected using random forest using rf_class() function.
+CAD_Normalised_rf_rf <- rf_class(CAD_Normalised_train_cropped_rf, CAD_Normalised_test_cropped_rf, mtry_rf_rf$mtry)
+# Extracting the performance statistics for random forest model with features selected using random forest.
+CAD_Normalised_rf_rf_accuracy <- CAD_Normalised_rf_rf[[1]]
+CAD_Normalised_rf_rf_ConfusionMatrix_ft <- CAD_Normalised_rf_rf[[2]]
+CAD_Normalised_rf_rf_f1 <- CAD_Normalised_rf_rf[[3]]
+```
+
+```{r}
+#| label: rf-pca-confusion-matrix
+#| output: false
+#| tbl-cap: Random Forest Confusion Matrix with PCA Transformed Data
+#| tbl-cap-location: bottom
+
+# Printing the random forest confusion matrix with the pca transformed data
+# This is not included in the report!
+CAD_Normalised_rf_pca_ConfusionMatrix_ft
+```
+
+```{r}
+#| label: tbl-rf-confusion-matrix0
+#| output: ture
+#| tbl-cap: Random Forest Confusion Matrix with All Features
+#| tbl-cap-location: bottom
+
+# Printing the confusion matrices for random forest model with all features
+CAD_Normalised_rf_ConfusionMatrix_ft
+```
+
+```{r}
+#| label: tbl-rf-confusion-matrix1
+#| output: ture
+#| tbl-cap: Random Forest Confusion Matrix with Features Selected Using RF
+#| tbl-cap-location: bottom
+
+# Printing the confusion matrices for random forest model with features selected using random Forest
+CAD_Normalised_rf_rf_ConfusionMatrix_ft
+```
+
+An accuracy of `r round(CAD_Normalised_rf_accuracy,2)` is observed using all the features with F1 score of `r round(CAD_Normalised_rf_f1,2)`. An accuracy of `r round(CAD_Normalised_rf_rf_accuracy, 2)` is observed using RF recommended features and the corresponding `F1` score is `r round(CAD_Normalised_rf_rf_f1, 2)`. Corresponding confusion matrices are summarised in @tbl-rf-confusion-matrix0 and @tbl-rf-confusion-matrix1.
+
+### MclustDA Discriminant Analysis {#sec-mda-classification}
+
+Discriminant analysis based on Gaussian finite mixture modelling is a classification model which is suitable when the data follows multivariate normal distributions. `mclust::MclustDA` function [@scrucca2016; @fraley2012] is used for MclustDA Discriminant Analysis.
+
+```{r}
+# MclustDA performs clustering and discriminant analysis and combines them to perform classifications. Clustering is made based on the assumption that different clusters in the dataset follow specific distributions such as Gaussian distributions. Discriminant analysis is performed to identify a specific discriminant function that maximises the cluster separation in the feature space. 
+```
+
+```{r}
+#| label: mda-classification-function
+
+# Function to estimate MclustDA performance metrics such as accuracy, f1 score and confusion matrix.
+mda_class <- function(train_set, test_set){
+  
+  # Generating label index which indicates the index of label feature.
+  label_index <- which(names(train_set)=="label")
+  
+  # Fitting a MclustDA model.
+  train_mda_fit <- mclust::MclustDA(train_set[,-label_index], train_set[,label_index], verbose=FALSE)
+  
+  # Generating table representing MclustDA confusion matrix.
+  mda_predict <- predict(train_mda_fit, test_set[,-label_index])
+  
+  # Converting the confusion matrix table to a dataframe format and converting the dataframe to wide format.
+  mda_confusion_Matrix <- caret::confusionMatrix(mda_predict$classification, test_set$label)
+  mda_confusion_Matrix_tbl <- mda_confusion_Matrix$table
+  mda_confusion_Matrix_df <- mda_confusion_Matrix_tbl %>% as.data.frame() %>% tidyr::pivot_wider(names_from = Reference, values_from = Freq) %>% as.data.frame() %>% rename(" " = Prediction)
+  
+  # Creating a table from the data frame and applying formatting functions. 
+  mda_confusion_Matrix_ft <- flextable::flextable(mda_confusion_Matrix_df) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::color(j = 1, color = "#FF0000") |> flextable::bold(j = 1) 
+  
+  # Estimating MclustDA accuracy.
+  mda_accuracy <- mean(mda_predict$classification == test_set$label)
+  
+  # Estimating MclustDA F1 score.
+  mda_f1 <- MLmetrics::F1_Score(test_set$label, mda_predict$classification)
+  
+  # Returning the required variables.
+  return (list(mda_accuracy, mda_confusion_Matrix_ft, mda_f1, train_mda_fit))
+}
+```
+
+```{r}
+#| label: mda-classification-main
+
+## Unused code is commented out for faster run times. Please un-comment if required!
+
+# t1 <- proc.time()
+# 
+# # Estimating the performance of MclustDA model with all the features using mda_class() function.
+# CAD_Normalised_mda <- mda_class(CAD_Normalised_train, CAD_Normalised_test)
+# # Extracting the performance statistics for MclustDA model with all the features.
+# CAD_Normalised_mda_accuracy <- CAD_Normalised_mda[[1]]
+# CAD_Normalised_mda_ConfusionMatrix_ft <- CAD_Normalised_mda[[2]]
+# CAD_Normalised_mda_f1 <- CAD_Normalised_mda[[3]]
+
+t2 <- proc.time()
+
+# Estimating the performance of MclustDA model with with features selected using decision tree using mda_class() function.
+CAD_Normalised_mda_dt <- mda_class(CAD_Normalised_train_cropped_dt, CAD_Normalised_test_cropped_dt)
+# Extracting the performance statistics for MclustDA model with features selected using decision tree.
+CAD_Normalised_mda_dt_accuracy <- CAD_Normalised_mda_dt[[1]]
+CAD_Normalised_mda_dt_ConfusionMatrix_ft <- CAD_Normalised_mda_dt[[2]]
+CAD_Normalised_mda_dt_f1 <- CAD_Normalised_mda_dt[[3]]
+
+t3 <- proc.time()
+
+# Estimating the performance of MclustDA model with features selected using random forest using mda_class() function.
+CAD_Normalised_mda_rf <- mda_class(CAD_Normalised_train_cropped_rf, CAD_Normalised_test_cropped_rf)
+# Extracting the performance statistics for MclustDA model with features selected using random forest.
+CAD_Normalised_mda_rf_accuracy <- CAD_Normalised_mda_rf[[1]]
+CAD_Normalised_mda_rf_ConfusionMatrix_ft <- CAD_Normalised_mda_rf[[2]]
+CAD_Normalised_mda_rf_f1 <- CAD_Normalised_mda_rf[[3]]
+
+t4 <- proc.time()
+
+# # Estimating the performance of MclustDA model with pca transformed data using mda_class() function.
+# CAD_Normalised_mda_pca <- mda_class(CAD_Normalised_train_pca_data, CAD_Normalised_test_pca_data)
+# # Extracting the performance statistics for MclustDA model with pca transformed data.
+# CAD_Normalised_mda_pca_accuracy <- CAD_Normalised_mda_pca[[1]]
+# CAD_Normalised_mda_pca_ConfusionMatrix_ft <- CAD_Normalised_mda_pca[[2]]
+# CAD_Normalised_mda_pca_f1 <- CAD_Normalised_mda_pca[[3]]
+# 
+# t5 <- proc.time()
+```
+
+```{r}
+#| label: tbl-mda-dt-confusion-matrix
+#| output: ture
+#| tbl-cap: MclustDA Confusion Matrix with Features Selected Using DT
+#| tbl-cap-location: bottom
+
+# Printing the confusion matrices for MclustDA model with features selected using DT
+CAD_Normalised_mda_dt_ConfusionMatrix_ft
+```
+
+```{r}
+#| label: tbl-mda-rf-confusion-matrix
+#| output: ture
+#| tbl-cap: MclustDA Confusion Matrix with Features Selected Using RF
+#| tbl-cap-location: bottom
+
+# Printing the confusion matrices for MclustDA model with features selected using RF
+CAD_Normalised_mda_rf_ConfusionMatrix_ft
+```
+
+When features recommended by DT and RF are used, accuracies of `r round(CAD_Normalised_mda_dt_accuracy, 2)` and `r round(CAD_Normalised_mda_rf_accuracy, 2)` respectively are observed with the corresponding `F1` scores being `r round(CAD_Normalised_mda_dt_f1, 2)` and `r round(CAD_Normalised_mda_rf_f1, 2)` respectively. Corresponding confusion matrices are summarised in @tbl-mda-dt-confusion-matrix and @tbl-mda-rf-confusion-matrix.
+
+## Recommendation and Validation {#sec-recommendation-validation}
+
+Based on the performances on the training data, RF and MclustDA classification models are recommended. For the case of RF, mtry hyperparameter is set to `r mtry_rf_rf`. Their performances are evaluated using the validation data. Features recommended by RF are used in both the models.
+
+```{r}
+#| label: validation
+
+# Evaluating selected classification models on validation data.
+
+# Generating label index which indicates the index of label feature.
+label_index <- length(CAD_Normalised_validation_cropped_rf)
+
+# Making classifications using random forest on validation data.
+rf_validation_predict <- predict(CAD_Normalised_rf_rf[[4]],CAD_Normalised_validation_cropped_rf[,-label_index])
+
+# Comparing the predictions with the actual labels to generate a confusion matrix.
+rf_validation_confusion_Matrix <- caret::confusionMatrix(rf_validation_predict, CAD_Normalised_validation_cropped_rf$label)
+
+# Converting the confusion matrix to a wide format dataframe.
+rf_validation_confusion_Matrix_tbl <- rf_validation_confusion_Matrix$table
+rf_validation_confusion_Matrix_df <- rf_validation_confusion_Matrix_tbl %>% as.data.frame() %>% tidyr::pivot_wider(names_from = Reference, values_from = Freq) %>% as.data.frame() %>% rename(" " = Prediction)
+
+# Generating a table and applying formatting functions to use in the report.
+rf_validation_confusion_Matrix_ft <- flextable::flextable(rf_validation_confusion_Matrix_df) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::color(j = 1, color = "#FF0000") |> flextable::bold(j = 1)
+
+# Estimating random forest classification accuracy on validation data
+rf_validation_accuracy <- mean(rf_validation_predict == CAD_Normalised_validation_cropped_rf$label)
+
+# Calculating random forest F1 score 
+rf_validation_f1 <- MLmetrics::F1_Score(CAD_Normalised_validation_cropped_rf$label, rf_validation_predict)
+
+
+# Making classifications using MclustDA on validation data.
+mda_validation_predict <- predict(CAD_Normalised_mda_rf[[4]],CAD_Normalised_validation_cropped_rf[,-label_index])
+
+# Comparing the predictions with the actual labels to generate a confusion matrix.
+mda_validation_confusion_Matrix <- caret::confusionMatrix(mda_validation_predict$classification, CAD_Normalised_validation_cropped_rf$label)
+
+# Converting the confusion matrix to a wide format dataframe.
+mda_validation_confusion_Matrix_tbl <- mda_validation_confusion_Matrix$table
+mda_validation_confusion_Matrix_df <- mda_validation_confusion_Matrix_tbl %>% as.data.frame() %>% tidyr::pivot_wider(names_from = Reference, values_from = Freq) %>% as.data.frame() %>% rename(" " = Prediction)
+
+# Generating a table and applying formatting functions to use in the report.
+mda_validation_confusion_Matrix_ft <- flextable::flextable(mda_validation_confusion_Matrix_df) |> flextable::theme_booktabs(bold_header = TRUE) |> flextable::set_table_properties(layout = "autofit", width = 0.5) |> flextable::align(align = "center", part = "all") |> flextable::color(color = "#FF0000", part = "header") |> flextable::color(j = 1, color = "#FF0000") |> flextable::bold(j = 1)
+
+# Estimating MclustDA classification accuracy on validation data
+mda_validation_accuracy <- mean(mda_validation_predict$classification == CAD_Normalised_validation_cropped_rf$label)
+
+# Calculating MclustDA F1 score 
+mda_validation_f1 <- MLmetrics::F1_Score(CAD_Normalised_validation_cropped_rf$label, mda_validation_predict$classification)
+```
+
+For the case of RF, an accuracy of `r round(rf_validation_accuracy,2)` is observed and the corresponding `F1` score is `r round(rf_validation_f1,2)`. For the case of MclustDA, an accuracy of `r round(mda_validation_accuracy,2)` is observed and the corresponding `F1` score is `r round(mda_validation_f1,2)`. The corresponding confusion matrices are summarised in @tbl-RF-validation-confusion-matrix and @tbl-MClustDA-validation-confusion-matrix.
+
+```{r}
+#| label: tbl-RF-validation-confusion-matrix
+#| output: ture
+#| tbl-cap: RF Validation Results
+#| tbl-cap-location: bottom
+
+# Printing the confusion matrices for random forest model with features selected using RF
+rf_validation_confusion_Matrix_ft
+```
+
+```{r}
+#| label: tbl-MClustDA-validation-confusion-matrix
+#| output: ture
+#| tbl-cap: MclustDA Validation Results
+#| tbl-cap-location: bottom
+
+# Printing the confusion matrices for MclustDA model with features selected using RF
+mda_validation_confusion_Matrix_ft
+```
+
+When tested on validation samples, accuracy of RF model marginally increased compared to accuracy on test samples while accuracy of MclustDA is similar in both the cases.
+
+## Conclusion {#sec-recommendation}
+
+MclustDA marginally outperformed RF in classification accuracy while computational complexity of RF is low compared to MclustDA. Optimum overall accuracy is achieved when the features are selected based on feature importance metrics obtained from the RF model. If computational complexity is a concern, RF classification model is recommended. However, classification performance can be optimised by using MclustDA.

@@ -1,0 +1,290 @@
+---
+references:
+- id: tierney2023
+  author:
+  - family: Tierney
+    given: Nicholas
+  - family: Cook
+    given: Dianne
+  container-title: Journal of Statistical Software
+  DOI: 10.18637/jss.v105.i07
+  issue: 7
+  issued: 2023
+  key: YSINYLZW
+  libraryID: 1
+  page: 1--31
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: Expanding Tidy Data Principles to Facilitate Missing Data
+    Exploration, Visualization and Assessment of Imputations
+  type: article-journal
+  volume: 105
+- id: fischetti2022
+  author:
+  - family: Fischetti
+    given: Tony
+  issued: 2022
+  key: EG7CARCY
+  libraryID: 1
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: "assertr: Assertive Programming for R Analysis Pipelines"
+  type: book
+  URL: "https://CRAN.R-project.org/package=assertr"
+- id: kuhn2008
+  author:
+  - family: Kuhn
+  - family: Max
+  container-title: Journal of Statistical Software
+  DOI: 10.18637/jss.v028.i05
+  issue: 5
+  issued: 2008
+  key: R7LSN5XZ
+  libraryID: 1
+  page: 1--26
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: Building Predictive Models in R Using the caret Package
+  type: article-journal
+  URL: "https://www.jstatsoft.org/index.php/jss/article/view/v028i05"
+  volume: 28
+- id: abdi2010
+  accessed: 2023-05-09
+  author:
+  - family: Abdi
+    given: Hervé
+  - family: Williams
+    given: Lynne J.
+  container-title: "Wiley Interdisciplinary Reviews: Computational
+    Statistics"
+  container-title-short: WIREs Comp Stat
+  DOI: 10.1002/wics.101
+  ISSN: 19395108
+  issue: 4
+  issued: 2010-07
+  key: H5CSE6GK
+  libraryID: 1
+  page: 433--459
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: "Principal component analysis: Principal component analysis"
+  title-short: Principal component analysis
+  type: article-journal
+  URL: "https://onlinelibrary.wiley.com/doi/10.1002/wics.101"
+  volume: 2
+- id: kassambara2016
+  author:
+  - family: Kassambara
+    given: Alboukadel
+  container-title: R package version
+  issued: 2016
+  key: F7B6EJNG
+  libraryID: 1
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: "Factoextra: extract and visualize the results of multivariate
+    data analyses"
+  type: article-journal
+  volume: 1
+- id: dinno2009
+  accessed: 2023-05-09
+  author:
+  - family: Dinno
+    given: Alexis
+  container-title: Multivariate Behavioral Research
+  container-title-short: Multivariate Behavioral Research
+  DOI: 10.1080/00273170902938969
+  ISSN: 0027-3171, 1532-7906
+  issue: 3
+  issued: 2009-06-22
+  key: C3I4EMIM
+  libraryID: 1
+  page: 362--388
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: Exploring the Sensitivity of Horn's Parallel Analysis to the
+    Distributional Form of Random Data
+  type: article-journal
+  URL: "https://www.tandfonline.com/doi/full/10.1080/00273170902938969"
+  volume: 44
+- id: dray2007
+  author:
+  - family: Dray
+    given: Stéphane
+  - family: Dufour
+    given: Anne-Béatrice
+  container-title: Journal of statistical software
+  issued: 2007
+  key: 2ZV5ZDVV
+  libraryID: 1
+  page: 1--20
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: "The ade4 package: implementing the duality diagram for
+    ecologists"
+  type: article-journal
+  volume: 22
+- id: kassambara2016a
+  author:
+  - family: Kassambara
+    given: Alboukadel
+  container-title: R package version
+  issued: 2016
+  key: F7B6EJNG
+  libraryID: 1
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: "Factoextra: extract and visualize the results of multivariate
+    data analyses"
+  type: article-journal
+  volume: 1
+- id: therneau2022
+  author:
+  - family: Therneau
+    given: Terry
+  - family: Atkinson
+    given: Beth
+  issued: 2022
+  key: 8VQ3YUX5
+  libraryID: 1
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: "rpart: Recursive Partitioning and Regression Trees"
+  type: book
+  URL: "https://CRAN.R-project.org/package=rpart"
+- id: liaw2002
+  author:
+  - family: Liaw
+    given: Andy
+  - family: Wiener
+    given: Matthew
+  container-title: R News
+  issue: 3
+  issued: 2002
+  key: TY3I79MH
+  libraryID: 1
+  page: 18-22
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: Classification and Regression by randomForest
+  type: article-journal
+  URL: "https://CRAN.R-project.org/doc/Rnews/"
+  volume: 2
+- id: venables2002
+  author:
+  - family: Venables
+    given: W. N.
+  - family: Ripley
+    given: B. D.
+  edition: Fourth
+  issued: 2002
+  key: BM9XG498
+  libraryID: 1
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  publisher: Springer
+  publisher-place: New York
+  title: Modern Applied Statistics with S
+  type: book
+  URL: "https://www.stats.ox.ac.uk/pub/MASS4/"
+- id: theodoridis2001
+  author:
+  - family: Theodoridis
+    given: Sergios
+  - family: Koutroumbas
+    given: Konstantinos
+  container-title: "Machine Learning and Its Applications: Advanced
+    Lectures"
+  issued: 2001
+  key: WFGKC8MS
+  libraryID: 1
+  page: 169--195
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  Publisher: Springer
+  title: Pattern recognition and neural networks
+  type: article-journal
+- id: therneau2022a
+  author:
+  - family: Therneau
+    given: Terry
+  - family: Atkinson
+    given: Beth
+  issued: 2022
+  key: 8VQ3YUX5
+  libraryID: 1
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: "rpart: Recursive Partitioning and Regression Trees"
+  type: book
+  URL: "https://CRAN.R-project.org/package=rpart"
+- id: breiman2017
+  author:
+  - family: Breiman
+    given: Leo
+  issued: 2017
+  key: 8BS6PZN5
+  libraryID: 1
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  publisher: Routledge
+  title: Classification and regression trees
+  type: book
+- id: liaw2002a
+  author:
+  - family: Liaw
+    given: Andy
+  - family: Wiener
+    given: Matthew
+  container-title: R News
+  issue: 3
+  issued: 2002
+  key: TY3I79MH
+  libraryID: 1
+  page: 18-22
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  title: Classification and Regression by randomForest
+  type: article-journal
+  URL: "https://CRAN.R-project.org/doc/Rnews/"
+  volume: 2
+- id: breiman2001
+  author:
+  - family: Breiman
+    given: Leo
+  container-title: Machine learning
+  issued: 2001
+  key: G5AX8UAU
+  libraryID: 1
+  page: 5--32
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  Publisher: Springer
+  title: Random forests
+  type: article-journal
+  volume: 45
+- id: scrucca2016
+  author:
+  - family: Scrucca
+    given: Luca
+  - family: Fop
+    given: Michael
+  - family: Murphy
+    given: T Brendan
+  - family: Raftery
+    given: Adrian E
+  container-title: The R journal
+  issue: 1
+  issued: 2016
+  key: 7L4NDU4T
+  libraryID: 1
+  page: 289
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  Publisher: NIH
+  title: "mclust 5: clustering, classification and density estimation
+    using Gaussian finite mixture models"
+  type: article-journal
+  volume: 8
+- id: fraley2012
+  author:
+  - family: Fraley
+    given: Chris
+  - family: Raftery
+    given: Adrian E
+  - family: Murphy
+    given: T Brendan
+  - family: Scrucca
+    given: Luca
+  issued: 2012
+  key: N36244B8
+  libraryID: 1
+  providerKey: 2509FBBE-5BB0-44C4-B119-6083A81ED673
+  publisher: Technical report
+  title: "mclust version 4 for R: normal mixture modeling for
+    model-based clustering, classification, and density estimation"
+  type: report
+...
